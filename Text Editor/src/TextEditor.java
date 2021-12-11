@@ -1,7 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
@@ -10,370 +9,314 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
-import javax.swing.BorderFactory;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
 
-public class TextEditor {
-
-	private JFrame frame;
-	private JMenuBar bar;
-	private JTextArea text;
-	private UndoManager manager;
-
-	public static void main(String[] args) {
-		TextEditor editor = new TextEditor();
-		editor.runEditor();
+public class TextEditor extends JFrame {
+	
+	private MyMenuBar menuBar;
+	private MyTextBox textBox;
+	private MyScrollPane scrollPane;
+	
+	
+	public TextEditor () {
+		menuBar = createMenuBar();
+		textBox = createTextBox();
+		scrollPane = createScrollPane();
+		
+		setJMenuBar(menuBar);
+		add(scrollPane, BorderLayout.CENTER);
+		setSize(500,500);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		setVisible(true);
+		setLocationRelativeTo(null);
 	}
 
-	private void runEditor() {
-
-		// Initialize everything
-		frame = new JFrame();
-		bar = new JMenuBar();
-		text = new JTextArea();
-		manager = new UndoManager();
-
-		// Create all of the JMenuItems that will be used
-		JMenuItem open = new JMenuItem("Open");
-		JMenuItem save = new JMenuItem("Save");
-		JMenuItem print = new JMenuItem("Print");
-		JMenuItem blank = new JMenuItem("New");
-		JMenuItem close = new JMenuItem("Exit");
-		JMenuItem cut = new JMenuItem("Cut");
-		JMenuItem copy = new JMenuItem("Copy");
-		JMenuItem paste = new JMenuItem("Paste");
-		JMenuItem undo = new JMenuItem("Undo");
-		JMenuItem redo = new JMenuItem("Redo");
-		JMenuItem font = new JMenuItem("Font");
-		JMenuItem color = new JMenuItem("Color");
-		color.setForeground(Color.MAGENTA);
-		JMenuItem ww = new JMenuItem("Word Wrap");
-		JMenuItem bgColor = new JMenuItem("Background");
-		JMenuItem about = new JMenuItem("About");
-
-		// Create the JMenus and add the JMenuItems to it
-		JMenu file = new JMenu("File");
-		file.add(blank);
-		file.add(save);
-		file.add(open);
-		file.add(print);
-		file.add(close);
-
-		JMenu edit = new JMenu("Edit");
-		edit.add(undo);
-		edit.add(redo);
-		edit.add(cut);
-		edit.add(copy);
-		edit.add(paste);
-
-		JMenu txt = new JMenu("Text");
-		txt.add(font);
-		txt.add(color);
-
-		JMenu settings = new JMenu("Settings");
-		settings.add(ww);
-		settings.add(bgColor);
-
-		JMenu help = new JMenu("Help");
-		help.add(about);
-
-		// Create the JMenuBar and add the JMenus to it
-		bar.setBackground(Color.LIGHT_GRAY);
-		bar.setEnabled(true);
-		bar.setVisible(true);
-		bar.add(file);
-		bar.add(edit);
-		bar.add(txt);
-		bar.add(settings);
-		bar.add(help);
-
-		// Create the JTextArea for typing and set the initial font
-		text = new JTextArea();
-		text.setEditable(true);
-		text.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		text.setFont(new Font("RomanBaseLine", Font.ROMAN_BASELINE, 18));
-		text.setLineWrap(true);
-		text.setTabSize(4);
-		text.setWrapStyleWord(true);
-		text.requestFocusInWindow();
-		text.setEnabled(true);
-		text.setFocusable(true);
-		text.setVisible(true);
-		text.setBackground(Color.LIGHT_GRAY);
-		text.setForeground(Color.BLACK);
-		text.getDocument().addUndoableEditListener(manager);
-
-		// Create the layout for the JFrame
-		LayoutManager layout = new BorderLayout(0, 0);
-
-		// Create scroll bars that will appear if the text would go off the page
-		JScrollPane scroll = new JScrollPane(frame.getContentPane());
-		scroll.setVerticalScrollBarPolicy(
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scroll.setHorizontalScrollBarPolicy(
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-		scroll.setAutoscrolls(false);
-		scroll.setEnabled(true);
-		scroll.setVisible(true);
-
-		// Create the JFrame and add the JMenuBar and the JTextArea box
-		frame.setLayout(layout);
-		frame.setJMenuBar(bar);
-		frame.add(text, BorderLayout.CENTER);
-		frame.setSize(500, 500);
-		frame.setLocationRelativeTo(null);
-		frame.setTitle("Version 1.0");
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setContentPane(scroll);
-		frame.setVisible(true);
-
-		// Set up what happens when the buttons are clicked
-		about.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(null, "Made on 6 December 2021",
-						"About", JOptionPane.INFORMATION_MESSAGE);
-			}
-		});
-
-		color.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(frame,
-						"Choose a Text Color", text.getForeground());
-				if ((newColor != null)) {
-					text.setForeground(newColor);
-				}
-			}
-		});
-
-		bgColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(frame,
-						"Choose a Background Color", text.getBackground());
-				if ((newColor != null)) {
-					text.setBackground(newColor);
-					bar.setBackground(newColor);
-				}
-			}
-		});
-
-		open.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				FileNameExtensionFilter filter = new FileNameExtensionFilter(
-						".txt files", "txt");
-				JFileChooser j = new JFileChooser("C:/Users/TD/Desktop");
-				j.setFileFilter(filter);
-				j.setDialogTitle("Open");
-				j.setApproveButtonText("Open");
-				openFile(j);
-			}
-		});
-
-		save.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-				saveFile();
-			}
-		});
-
-		print.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					text.print();
-				} catch (PrinterException p) {
-					JOptionPane error = new JOptionPane(
-							"The file cannot be printed.",
-							JOptionPane.ERROR_MESSAGE);
-					JDialog dialog = error.createDialog("Error!");
-					dialog.setAlwaysOnTop(true);
-					dialog.setVisible(true);
-				}
-			}
-		});
-
-		blank.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				text.setText("");
-			}
-		});
-
-		close.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-			}
-		});
-
-		cut.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				text.cut();
-			}
-		});
-
-		copy.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				text.copy();
-			}
-		});
-
-		paste.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				text.paste();
-			}
-		});
-
-		undo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					manager.undo();
-				} catch (CannotUndoException u) {
-				}
-			}
-		});
-
-		redo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					manager.redo();
-				} catch (CannotRedoException r) {
-				}
-			}
-		});
-
-		font.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFontChooser j = new JFontChooser();
-				j.setSelectedFont(text.getFont());
-				j.setSelectedFontSize(text.getFont().getSize());
-				j.setSelectedFontStyle(text.getFont().getStyle());
-				int result = j.showDialog(frame);
-				if (result == JFontChooser.OK_OPTION) {
-					Font newFont = j.getSelectedFont();
-					text.setFont(newFont);
-				}
-			}
-		});
-
-		ww.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				text.setLineWrap(!text.getLineWrap());
-			}
-		});
+	private MyScrollPane createScrollPane() {
+		return new MyScrollPane(textBox);
+	}
+	
+	private MyTextBox createTextBox() {
+		return new MyTextBox();
 	}
 
-	private void openFile(JFileChooser j) {
-		int choice = j.showOpenDialog(frame);
-		switch (choice) {
-			case JFileChooser.APPROVE_OPTION :
-				try {
-					File f = new File(j.getSelectedFile().getAbsolutePath());
-					Scanner scan = new Scanner(f);
+	private MyMenu createFile() {
+		MyMenuItem open = new MyMenuItem("open","Open");
+		MyMenuItem save = new MyMenuItem("save","Save");
+		MyMenuItem print = new MyMenuItem("print","Print");
+		MyMenuItem blank = new MyMenuItem("blank","New");
+		MyMenuItem close = new MyMenuItem("close","Exit");
+		
+		open.addActionListener(new MyActionListener(open.getName()));
+		save.addActionListener(new MyActionListener(save.getName()));
+		print.addActionListener(new MyActionListener(print.getName()));
+		blank.addActionListener(new MyActionListener(blank.getName()));
+		close.addActionListener(new MyActionListener(close.getName()));
+		
+		return new MyMenu("File", blank, save, open, print, close);
+	}
+	
+	private MyMenu createEdit() {
+		MyMenuItem cut = new MyMenuItem("cut","Cut");
+		MyMenuItem copy = new MyMenuItem("copy","Copy");
+		MyMenuItem paste = new MyMenuItem("paste","Paste");
+		MyMenuItem undo = new MyMenuItem("undo","Undo");
+		MyMenuItem redo = new MyMenuItem("redo","Redo");
+		
+		cut.addActionListener(new MyActionListener(cut.getName()));
+		copy.addActionListener(new MyActionListener(copy.getName()));
+		paste.addActionListener(new MyActionListener(paste.getName()));
+		undo.addActionListener(new MyActionListener(undo.getName()));
+		redo.addActionListener(new MyActionListener(redo.getName()));
+		
+		return new MyMenu("Edit", undo, redo, cut, copy, paste);
+	}
+	
+	private MyMenu createSettings() {
+		MyMenuItem font = new MyMenuItem("font","Font");
+		MyMenuItem color = new MyMenuItem("color","Text Color");
+		MyMenuItem bgColor = new MyMenuItem("bgColor","Background");
+		MyMenuItem ww = new MyMenuItem("ww", "Word Wrap");
+		
+		font.addActionListener(new MyActionListener(font.getName()));
+		color.addActionListener(new MyActionListener(color.getName()));
+		bgColor.addActionListener(new MyActionListener(bgColor.getName()));
+		ww.addActionListener(new MyActionListener(ww.getName()));
+		
+		return new MyMenu("Settings", ww, color, font, bgColor);
+	}
+	
+	private MyMenu createHelp() {
+		MyMenuItem about = new MyMenuItem("about","About");
+		
+		about.addActionListener(new MyActionListener(about.getName()));
+		
+		return new MyMenu("Help", about);
+	}
+	
+	private MyMenuBar createMenuBar() {
+		return new MyMenuBar(createFile(), createEdit(), createSettings(), createHelp());
+	}
+	
+	class MyActionListener implements ActionListener{
 
-					text.setText("");
-					String fileContents = "";
-					while (scan.hasNextLine()) {
-						fileContents = (fileContents + scan.nextLine() + "\n");
-					}
-					text.setText(fileContents);
-					scan.close();
-				} catch (IOException e) {
-					JOptionPane error = new JOptionPane(
-							"The file cannot be opened.",
-							JOptionPane.ERROR_MESSAGE);
-					JDialog dialog = error.createDialog("Error!");
-					dialog.setAlwaysOnTop(true);
-					dialog.setVisible(true);
-				}
-				break;
-			case JFileChooser.CANCEL_OPTION :
-				break;
-			case JFileChooser.ERROR_OPTION :
-				JOptionPane error = new JOptionPane(
-						"The file cannot be opened.",
-						JOptionPane.ERROR_MESSAGE);
+		private String name;
+		
+		public MyActionListener(String theName) {
+			name = theName;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			switch (name) {
+				case "open": runOpen(); break;
+				case "save": runSave(); break;
+				case "print": runPrint(); break;
+				case "blank": runBlank(); break;
+				case "close": runClose(); break;
+				case "cut": runCut(); break;
+				case "copy": runCopy(); break;
+				case "paste": runPaste(); break;
+				case "undo": runUndo(); break;
+				case "redo": runRedo(); break;
+				case "font": runFont(); break;
+				case "color": runColor(); break;
+				case "bgColor": runBgColor(); break;
+				case "about": runAbout(); break;
+				case "ww" : runWW(); break;
+				default : runNotYetImplemented();
+			}
+			
+		}
+		private void runWW() {
+			textBox.setLineWrap(!textBox.getLineWrap());
+			
+		}
+
+		private void runNotYetImplemented() {
+			JOptionPane error = new JOptionPane("This has not been implemented yet.", JOptionPane.ERROR_MESSAGE);
+			JDialog dialog = error.createDialog("Error!");
+			dialog.setAlwaysOnTop(true);
+			dialog.setVisible(true);
+			
+		}
+
+		private void runAbout() {
+			JOptionPane.showMessageDialog(textBox, "Text Editor Version 1.5 \n by WyrdenTheGreat \n 10 December 2021",
+					"About", JOptionPane.INFORMATION_MESSAGE);
+			
+		}
+		private void runBgColor() {
+			Color newColor = JColorChooser.showDialog(null, "Choose a Background Color", textBox.getBackground());
+			if ((newColor != null)) {
+				textBox.setBackground(newColor);
+				menuBar.setBackground(newColor);
+			}
+			
+		}
+		private void runColor() {
+			Color newColor = JColorChooser.showDialog(TextEditor.this, "Choose a Text Color", textBox.getForeground());
+			textBox.setForeground(newColor);
+		}
+		private void runFont() {
+			JFontChooser j = new JFontChooser();
+			j.setSelectedFont(textBox.getFont());
+			j.setSelectedFontSize(textBox.getFont().getSize());
+			j.setSelectedFontStyle(textBox.getFont().getStyle());
+			int result = j.showDialog(null);
+			if (result == JFontChooser.OK_OPTION) {
+				Font newFont = j.getSelectedFont();
+				textBox.setFont(newFont);
+			}
+			
+		}
+		private void runRedo() {
+			try {
+				textBox.redo();
+			} 
+			catch (CannotRedoException r) {
+				JOptionPane error = new JOptionPane("No action can be redone.", JOptionPane.ERROR_MESSAGE);
 				JDialog dialog = error.createDialog("Error!");
 				dialog.setAlwaysOnTop(true);
 				dialog.setVisible(true);
-				break;
-			default :
-				break;
+			}
+			
 		}
-		return;
-	}
-
-	private void saveFile() {
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				".txt files", "txt");
-		JFileChooser j = new JFileChooser("C:/Users/TD/Desktop");
-		j.setFileFilter(filter);
-		j.setDialogTitle("Save");
-		j.setApproveButtonText("Save");
-		int choice = j.showSaveDialog(frame);
-		switch (choice) {
-			case JFileChooser.APPROVE_OPTION :
-				try {
-					String path = "";
-					if (!j.getSelectedFile().exists()) {
-						path = (j.getSelectedFile().getAbsolutePath() + ".txt");
-					} else {
-						path = (j.getSelectedFile().getAbsolutePath());
-					}
-					File f = new File(path);
-					FileWriter writer = new FileWriter(f);
-					writer.write("");
-					writer.write(text.getText());
-					writer.close();
-				} catch (IOException e) {
-					JOptionPane error = new JOptionPane(
-							"The file cannot be saved.",
-							JOptionPane.ERROR_MESSAGE);
-					JDialog dialog = error.createDialog("Error!");
-					dialog.setAlwaysOnTop(true);
-					dialog.setVisible(true);
-				}
-				break;
-			case JFileChooser.CANCEL_OPTION :
-				break;
-			case JFileChooser.ERROR_OPTION :
-				JOptionPane error = new JOptionPane("The file cannot be saved.",
-						JOptionPane.ERROR_MESSAGE);
+		private void runUndo() {
+			try {
+				textBox.undo();
+			} 
+			catch (CannotUndoException r) {
+				JOptionPane error = new JOptionPane("No action can be undone.", JOptionPane.ERROR_MESSAGE);
 				JDialog dialog = error.createDialog("Error!");
 				dialog.setAlwaysOnTop(true);
 				dialog.setVisible(true);
-				break;
-			default :
-				break;
+			}
+			
 		}
-		return;
-	}
+		private void runPaste() {
+			textBox.paste();
+			
+		}
+		private void runCopy() {
+			textBox.copy();
+			
+		}
+		private void runCut() {
+			textBox.cut();
+			
+		}
+		private void runClose() {
+			System.exit(0);
+			
+		}
+		private void runBlank() {
+			textBox.setText("");
+			
+		}
+		private void runPrint() {
+			try {
+				textBox.print();
+			}
+			catch (PrinterException e) {
+				JOptionPane error = new JOptionPane("The file cannot be printed.", JOptionPane.ERROR_MESSAGE);
+				JDialog dialog = error.createDialog("Error!");
+				dialog.setAlwaysOnTop(true);
+				dialog.setVisible(true);
+			}
+		}
+			
+		private void runOpen() {
+			FileNameExtensionFilter filter = new FileNameExtensionFilter(
+					".txt files", "txt");
+			JFileChooser j = new JFileChooser("C:/Users/TD/Desktop");
+			j.setFileFilter(filter);
+			j.setDialogTitle("Open");
+			j.setApproveButtonText("Open");
+			int choice = j.showOpenDialog(null);
+			switch (choice) {
+				case JFileChooser.APPROVE_OPTION :
+					try {
+						File f = new File(j.getSelectedFile().getAbsolutePath());
+						Scanner scan = new Scanner(f);
 
+						textBox.setText("");
+						String fileContents = "";
+						while (scan.hasNextLine()) {
+							fileContents = (fileContents + scan.nextLine() + "\n");
+						}
+						textBox.setText(fileContents);
+						scan.close();
+					} catch (IOException e) {
+						JOptionPane error = new JOptionPane("The file cannot be opened.", JOptionPane.ERROR_MESSAGE);
+						JDialog dialog = error.createDialog("Error!");
+						dialog.setAlwaysOnTop(true);
+						dialog.setVisible(true);
+					}
+					break;
+				case JFileChooser.CANCEL_OPTION :
+					break;
+				case JFileChooser.ERROR_OPTION :
+					JOptionPane error = new JOptionPane("The file cannot be opened.", JOptionPane.ERROR_MESSAGE);
+					JDialog dialog = error.createDialog("Error!");
+					dialog.setAlwaysOnTop(true);
+					dialog.setVisible(true);
+					break;
+				default :
+					break;
+			}
+			return;
+		}
+
+		private void runSave() {
+			FileNameExtensionFilter filter = new FileNameExtensionFilter(".txt files", "txt");
+			JFileChooser j = new JFileChooser("C:/Users/TD/Desktop");
+			j.setFileFilter(filter);
+			j.setDialogTitle("Save");
+			j.setApproveButtonText("Save");
+			int choice = j.showSaveDialog(null);
+			switch (choice) {
+				case JFileChooser.APPROVE_OPTION :
+					try {
+						String path = "";
+						if (!j.getSelectedFile().exists()) {
+							path = (j.getSelectedFile().getAbsolutePath() + ".txt");
+						} 
+						else {
+							path = (j.getSelectedFile().getAbsolutePath());
+						}
+						File f = new File(path);
+						FileWriter writer = new FileWriter(f);
+						writer.write("");
+						writer.write(textBox.getText());
+						writer.close();
+					} 
+					catch (IOException e) {
+						JOptionPane error = new JOptionPane("The file cannot be saved.", JOptionPane.ERROR_MESSAGE);
+						JDialog dialog = error.createDialog("Error!");
+						dialog.setAlwaysOnTop(true);
+						dialog.setVisible(true);
+					}
+					break;
+				case JFileChooser.CANCEL_OPTION :
+					break;
+				case JFileChooser.ERROR_OPTION :
+					JOptionPane error = new JOptionPane("The file cannot be saved.", JOptionPane.ERROR_MESSAGE);
+					JDialog dialog = error.createDialog("Error!");
+					dialog.setAlwaysOnTop(true);
+					dialog.setVisible(true);
+					break;
+				default :
+					break;
+			}
+			return;
+		}
+	}
 }
